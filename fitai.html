@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fit AI - Everyday Fitness & Wellness Companion</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#10b981">
+  <script src="tailwind.js"></script>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+
+    @keyframes breathPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+      }
+      40%, 60% {
+        transform: scale(1.35);
+        box-shadow: 0 0 60px rgba(16, 185, 129, 0.5);
+      }
+    }
+
+    .animate-breath {
+      animation: breathPulse 12s infinite ease-in-out;
+    }
+
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .glow-emerald {
+      box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-800 antialiased h-full flex flex-col items-center justify-center p-0 sm:p-4 select-none overflow-x-hidden">
+
+  <!-- MAIN MOBILE DEVICE SHELL -->
+  <div id="phoneShell" class="w-full max-w-md h-full sm:h-[880px] bg-slate-50 sm:rounded-[48px] shadow-2xl overflow-hidden flex flex-col relative border-0 sm:border-[8px] sm:border-slate-800 transition-all duration-500">
+    
+    <!-- Native Android status bar is shown by the app shell. -->
+
+    <!-- VIEWPORT -->
+    <div id="screenContainer" class="flex-1 overflow-y-auto relative bg-slate-50 pb-20">
+      
+      <!-- TOAST NOTIFICATION -->
+      <div id="toastNotification" class="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 text-white font-extrabold px-4 py-2.5 rounded-2xl border border-slate-700 shadow-2xl z-50 transition-all duration-300 opacity-0 pointer-events-none text-xs flex items-center space-x-2">
+        <span id="toastText">Activity Completed</span>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 0. SPLASH SCREEN -->
+      <!-- ========================================== -->
+      <div id="viewSplash" class="min-h-full flex flex-col justify-between p-6 bg-gradient-to-b from-slate-900 via-teal-950 to-slate-950 text-white z-50 absolute inset-0 transition-all duration-700">
+        <div class="flex-1 flex flex-col items-center justify-center text-center mt-10 space-y-6">
+          <div class="w-28 h-28 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-3xl flex items-center justify-center shadow-2xl glow-emerald p-0.5">
+            <div class="w-full h-full bg-slate-950/40 backdrop-blur-md rounded-[22px] flex items-center justify-center">
+              <svg class="w-14 h-14 fill-emerald-400" viewBox="0 0 24 24"><path d="M13 2L3 14h7v8l10-12h-7z"/></svg>
+            </div>
+          </div>
+          <div>
+            <h1 class="text-4xl font-extrabold tracking-tight text-white mb-2">FIT AI</h1>
+            <p class="text-emerald-300 text-sm font-medium tracking-wide">Your everyday fitness & wellness companion.</p>
+          </div>
+        </div>
+
+        <div class="space-y-3 mb-6">
+          <button onclick="app.startOnboarding()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold rounded-2xl shadow-xl hover:from-emerald-400 hover:to-teal-400 transition active:scale-95 text-center text-base">
+            Get Started
+          </button>
+          <button onclick="app.quickLogin()" class="w-full py-3.5 bg-white/10 backdrop-blur-md text-white font-semibold rounded-2xl border border-white/15 hover:bg-white/20 transition text-center text-sm">
+            I already have an account
+          </button>
+        </div>
+      </div>
+
+      <!-- ONBOARDING MODAL -->
+      <div id="modalOnboarding" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden transition-opacity">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-5 max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-100">
+          <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Welcome to Fit AI</span>
+              <h3 class="text-xl font-extrabold text-slate-900">Personalize Your Plan</h3>
+            </div>
+            <button onclick="app.closeOnboarding()" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+          </div>
+
+          <form id="onboardingForm" onsubmit="app.submitOnboarding(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Your Name</label>
+              <input type="text" id="obName" value="Sai" required class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold text-slate-900">
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Age</label>
+                <input type="number" id="obAge" value="25" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Height (cm)</label>
+                <input type="number" id="obHeight" value="175" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Weight (kg)</label>
+                <input type="number" id="obWeight" value="70" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Fitness Goal</label>
+              <select id="obGoal" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option value="General Fitness" selected>🎯 General Fitness</option>
+                <option value="Weight Loss">🔥 Weight Loss</option>
+                <option value="Muscle Gain">💪 Muscle Gain</option>
+                <option value="Strength">🏋️ Strength</option>
+                <option value="Beginner Fitness">🌱 Beginner Fitness</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Fitness Level</label>
+                <select id="obLevel" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-xs">
+                  <option value="Beginner" selected>Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Workout Time</label>
+                <select id="obTime" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-xs">
+                  <option value="15 min">15 minutes</option>
+                  <option value="20 min" selected>20 minutes</option>
+                  <option value="30 min">30 minutes</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Equipment</label>
+                <select id="obEquipment" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-xs">
+                  <option value="None" selected>None (Bodyweight)</option>
+                  <option value="Dumbbells">Dumbbells</option>
+                  <option value="Gym Access">Full Gym</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-700 uppercase mb-1">Screen Limit Target</label>
+                <select id="obScreenTarget" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-semibold text-xs">
+                  <option value="3.0">3 Hours</option>
+                  <option value="4.0" selected>4 Hours</option>
+                  <option value="5.0">5 Hours</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl shadow-lg transition active:scale-95 text-center mt-2">
+              Save & Launch Fit AI 🚀
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 1. HOME DASHBOARD SCREEN -->
+      <!-- ========================================== -->
+      <div id="screenHome" class="p-5 space-y-5">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">FIT AI DASHBOARD</span>
+            <h2 class="text-2xl font-black text-slate-900">Good Morning, <span id="userNameHeader">Sai</span></h2>
+          </div>
+          <button onclick="app.switchTab('profile')" class="w-11 h-11 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl p-0.5 shadow-md hover:opacity-90 transition">
+            <div class="w-full h-full bg-white rounded-[14px] flex items-center justify-center text-emerald-700 font-black text-base">
+              <span id="userAvatarInitials">S</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- MAIN OVERALL FIT AI SCORE CARD -->
+        <div class="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+          <div class="absolute -right-10 -bottom-10 w-44 h-44 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div class="flex items-center justify-between">
+            <div class="space-y-1">
+              <span class="text-[10px] font-black text-emerald-400 tracking-widest uppercase">TODAY'S FIT AI SCORE</span>
+              <div class="flex items-baseline space-x-1">
+                <span id="homeOverallScore" class="text-5xl font-black tracking-tight text-white">78</span>
+                <span class="text-emerald-400 font-extrabold text-2xl">%</span>
+              </div>
+              <p class="text-xs text-slate-300 max-w-[200px] leading-relaxed pt-1">
+                Targeted balance across exercise, sleep, wellness & screen limits.
+              </p>
+            </div>
+
+            <div class="relative w-24 h-24 flex items-center justify-center">
+              <svg class="w-24 h-24">
+                <circle cx="48" cy="48" r="38" stroke="rgba(255,255,255,0.12)" stroke-width="8" fill="transparent" />
+                <circle id="homeScoreCircle" cx="48" cy="48" r="38" stroke="url(#scoreGradient)" stroke-width="8" fill="transparent"
+                        stroke-dasharray="238.76" stroke-dashoffset="52.5" stroke-linecap="round" class="progress-ring-circle" />
+                <defs>
+                  <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#10B981" />
+                    <stop offset="100%" stop-color="#14B8A6" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span class="absolute text-xs font-black text-emerald-300">🎯 Optimal</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-4 gap-2 mt-5 pt-4 border-t border-white/10 text-center">
+            <div class="bg-white/5 border border-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Exercise</div>
+              <div id="chipExercise" class="text-sm font-black text-emerald-400">80%</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Wellness</div>
+              <div id="chipWellness" class="text-sm font-black text-teal-400">70%</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Sleep</div>
+              <div id="chipSleep" class="text-sm font-black text-cyan-400">85%</div>
+            </div>
+            <div class="bg-white/5 border border-white/10 rounded-xl p-2 backdrop-blur-xs">
+              <div class="text-[9px] font-bold text-slate-400 uppercase">Screen</div>
+              <div id="chipScreen" class="text-sm font-black text-indigo-400">75%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REALISTIC 2-LINE SMART AI TIP BANNER -->
+        <div class="bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-200/80 rounded-2xl p-4 flex items-start space-x-3 text-amber-950 shadow-2xs">
+          <div class="p-2 bg-amber-500/20 text-amber-700 rounded-xl shrink-0">
+            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+          </div>
+          <div class="text-xs flex-1">
+            <div class="flex justify-between items-center mb-0.5">
+              <span class="font-extrabold text-amber-900 text-sm">Smart AI Tip</span>
+              <span id="aiTipCategoryBadge" class="text-[9px] font-bold bg-amber-200/60 text-amber-950 px-2 py-0.5 rounded-md">Mental & Physical</span>
+            </div>
+            <p id="aiRecommendationText" class="font-semibold text-slate-700 leading-snug line-clamp-2">
+              Good progress! Complete today's stretching and breathing session to improve your wellness score.
+            </p>
+          </div>
+        </div>
+
+        <!-- Today's Checklist Section -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-base font-extrabold text-slate-900">Today's Plan</h3>
+            <span class="text-xs font-bold text-slate-500"><span id="planCompletedCount">0</span> of 5 Completed</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <label class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-emerald-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkWorkout" onchange="app.toggleChecklist('workout')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+                <span class="text-xs font-bold text-slate-800">🏋️ 20-min General Fitness Workout</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">+20%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-emerald-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkWalking" onchange="app.toggleChecklist('walking')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+                <span class="text-xs font-bold text-slate-800">🚶 15-min Brisk Walking</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">+15%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkBreathing" onchange="app.toggleChecklist('breathing')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+                <span class="text-xs font-bold text-slate-800">𫁁 2-min Guided Breathing</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+15%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkStretching" onchange="app.toggleChecklist('stretching')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+                <span class="text-xs font-bold text-slate-800">🙆 Desk Break Stretching</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+15%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-indigo-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkTip" onchange="app.toggleChecklist('tip')" class="w-5 h-5 rounded-md text-emerald-600 focus:ring-emerald-500 accent-emerald-600">
+                <span class="text-xs font-bold text-slate-800">🌱 Log Screen Time & Daily Tip</span>
+              </div>
+              <span class="text-[10px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-full">+10%</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Quick Shortcut Cards -->
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div onclick="app.switchTab('exercises')" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:border-emerald-300 transition flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold">
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 6.29 3.43 7.71 4.86 3.43 9.14 2 7.71 .57 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 17.71 20.57 16.29 19.14 20.57 14.86z"/></svg>
+              </div>
+              <span class="text-[9px] font-black text-slate-400 uppercase">WORKOUTS</span>
+            </div>
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm">AI Generator</h4>
+              <p class="text-[11px] text-slate-500">20 mins • Bodyweight</p>
+            </div>
+            <button class="w-full py-2 bg-emerald-50 text-emerald-700 font-extrabold rounded-xl text-xs hover:bg-emerald-100 transition">
+              Start Session →
+            </button>
+          </div>
+
+          <div onclick="app.switchTab('wellness')" class="bg-white border border-slate-200/80 p-4 rounded-2xl shadow-2xs cursor-pointer hover:border-teal-300 transition flex flex-col justify-between space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="w-9 h-9 bg-teal-100 text-teal-700 rounded-xl flex items-center justify-center font-bold">
+                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+              </div>
+              <span class="text-[9px] font-black text-slate-400 uppercase">WELLNESS</span>
+            </div>
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm">Mind & Recovery</h4>
+              <p class="text-[11px] text-slate-500">Breathing & Sleep</p>
+            </div>
+            <button class="w-full py-2 bg-teal-50 text-teal-700 font-extrabold rounded-xl text-xs hover:bg-teal-100 transition">
+              Explore Wellness →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 2. EXERCISES & DAILY ESSENTIALS SCREEN -->
+      <!-- ========================================== -->
+      <div id="screenExercises" class="p-5 space-y-5 hidden">
+        <div class="flex bg-slate-200/70 p-1 rounded-2xl">
+          <button id="tabBtnWorkouts" onclick="app.setExerciseSubTab('workouts')" class="flex-1 py-2.5 rounded-xl font-extrabold text-xs transition shadow-xs bg-white text-slate-900">
+            🏋️ AI Workout Generator
+          </button>
+          <button id="tabBtnEssentials" onclick="app.setExerciseSubTab('essentials')" class="flex-1 py-2.5 rounded-xl font-extrabold text-xs transition text-slate-600">
+            🚶 Daily Essentials (9)
+          </button>
+        </div>
+
+        <div id="subTabWorkouts" class="space-y-4">
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3">
+            <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">Select Goal</h3>
+            
+            <div class="flex flex-wrap gap-2" id="goalChipContainer">
+              <button onclick="app.selectGoal('General Fitness')" class="goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-emerald-600 text-white border-emerald-600">
+                🎯 General Fitness
+              </button>
+              <button onclick="app.selectGoal('Weight Loss')" class="goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+                🔥 Weight Loss
+              </button>
+              <button onclick="app.selectGoal('Muscle Gain')" class="goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+                💪 Muscle Gain
+              </button>
+              <button onclick="app.selectGoal('Strength')" class="goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+                🏋️ Strength
+              </button>
+              <button onclick="app.selectGoal('Beginner Fitness')" class="goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100">
+                🌱 Beginner Fitness
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center text-xs">
+              <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block">LEVEL</span>
+                <span id="paramLevel" class="font-bold text-slate-800">Beginner</span>
+              </div>
+              <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block">TIME</span>
+                <span id="paramTime" class="font-bold text-slate-800">20 Mins</span>
+              </div>
+              <div class="bg-slate-50 p-2 rounded-xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block">EQUIPMENT</span>
+                <span id="paramEquip" class="font-bold text-slate-800">None</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center px-1">
+            <h3 class="text-base font-extrabold text-slate-900">Generated Routine</h3>
+            <span id="workoutItemCount" class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">5 Exercises</span>
+          </div>
+
+          <div id="generatedExercisesList" class="space-y-3">
+            <!-- Dynamic exercises -->
+          </div>
+        </div>
+
+        <div id="subTabEssentials" class="space-y-4 hidden">
+          <div class="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-200/80 p-4 rounded-2xl text-emerald-950 text-xs space-y-1">
+            <span class="font-extrabold text-sm text-emerald-900 block">🚶 Daily Essentials Routine</span>
+            <p class="font-medium text-slate-700">9 fundamental full-body mobility & strength exercises. No gym equipment required.</p>
+          </div>
+
+          <div id="essentialsList" class="space-y-3">
+            <!-- 9 Exercises -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 3. WELLNESS HUB SCREEN -->
+      <!-- ========================================== -->
+      <div id="screenWellness" class="p-5 space-y-5 hidden">
+        <div>
+          <span class="text-[10px] font-black text-teal-600 uppercase tracking-widest">RECOVERY & MINDFULNESS</span>
+          <h2 class="text-2xl font-black text-slate-900">Wellness Section</h2>
+        </div>
+
+        <div class="flex space-x-2 overflow-x-auto pb-1 scrollbar-none">
+          <button onclick="app.setWellnessTab('sleep')" id="wTabSleep" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-teal-600 text-white shadow-xs">
+            😴 Sleep
+          </button>
+          <button onclick="app.setWellnessTab('breathing')" id="wTabBreathing" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200">
+            𫁁 Breathing
+          </button>
+          <button onclick="app.setWellnessTab('stress')" id="wTabStress" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200">
+            😌 Stress Relief
+          </button>
+          <button onclick="app.setWellnessTab('meditation')" id="wTabMeditation" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200">
+            🧘 Meditation
+          </button>
+          <button onclick="app.setWellnessTab('stretching')" id="wTabStretching" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200">
+            🙆 Stretching (4)
+          </button>
+          <button onclick="app.setWellnessTab('screentime')" id="wTabScreentime" class="w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200">
+            🌱 Daily Tip & Screen Time
+          </button>
+        </div>
+
+        <!-- WELLNESS TAB 1: SLEEP -->
+        <div id="wContentSleep" class="space-y-4">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 class="font-extrabold text-slate-900 text-base">😴 Sleep Logger</h3>
+              <span id="sleepStatusBadge" class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">🟢 Good</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Sleep Time</label>
+                <input type="time" id="sleepBedtime" value="23:00" onchange="app.recalculateSleep()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 text-center text-sm">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Wake-up Time</label>
+                <input type="time" id="sleepWaketime" value="06:20" onchange="app.recalculateSleep()" class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 text-center text-sm">
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center space-y-1">
+              <span class="text-xs text-slate-500 font-medium">Calculated Duration</span>
+              <div class="text-3xl font-black text-slate-900" id="sleepDurationDisplay">7h 20m</div>
+              <p id="sleepRecommendationText" class="text-xs text-slate-600 pt-1 font-medium">Recommendation: Maintain a consistent sleep schedule.</p>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-extrabold text-slate-900 text-sm">Weekly Sleep Trends</h4>
+              <span class="text-[10px] font-bold text-slate-400">Last 7 days</span>
+            </div>
+            <div id="weeklySleepTrend" class="flex items-end justify-between h-32 pt-4 px-2" aria-label="Sleep hours for the last seven days"></div>
+            <p id="weeklySleepSummary" class="text-[11px] text-slate-500 text-center">Log sleep to start your weekly trend.</p>
+          </div>
+        </div>
+
+        <!-- WELLNESS TAB 2: BREATHING -->
+        <div id="wContentBreathing" class="space-y-4 hidden">
+          <div class="bg-gradient-to-b from-teal-950 via-slate-900 to-slate-950 p-6 rounded-3xl text-white shadow-2xl text-center space-y-5 border border-teal-900/50">
+            <h3 class="text-lg font-extrabold text-teal-200">𫁁 Guided Breathing Session</h3>
+            
+            <div class="relative w-44 h-44 mx-auto flex items-center justify-center">
+              <div id="breathingCircle" class="w-36 h-36 bg-teal-500/20 border-2 border-teal-400/50 rounded-full flex items-center justify-center transition-all duration-1000">
+                <div class="w-24 h-24 bg-teal-400/30 rounded-full flex flex-col items-center justify-center backdrop-blur-xs border border-teal-300/30">
+                  <span id="breathPhaseText" class="text-xs font-black text-white uppercase tracking-wider">Inhale</span>
+                  <span id="breathTimerSeconds" class="text-2xl font-black">4s</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-center space-x-3">
+              <button onclick="app.startBreathingTimer(60)" class="px-4 py-2 bg-white/10 rounded-xl text-xs font-bold hover:bg-white/20 border border-white/10">1 Minute</button>
+              <button onclick="app.startBreathingTimer(120)" class="px-4 py-2 bg-teal-500 text-slate-950 rounded-xl text-xs font-extrabold shadow-md">2 Minutes</button>
+              <button onclick="app.startBreathingTimer(300)" class="px-4 py-2 bg-white/10 rounded-xl text-xs font-bold hover:bg-white/20 border border-white/10">5 Minutes</button>
+            </div>
+
+            <p class="text-xs text-teal-200/90 font-medium">Diaphragmatic rhythm: 4s Inhale → 4s Hold → 4s Exhale.</p>
+          </div>
+        </div>
+
+        <!-- WELLNESS TAB 3: STRESS RELIEF -->
+        <div id="wContentStress" class="space-y-3 hidden">
+          <h3 class="text-xs font-black text-slate-900 uppercase">Short Relaxation Activities</h3>
+          
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex justify-between items-center">
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm">2-Minute Quick Relaxation</h4>
+              <p class="text-xs text-slate-500">Unwind shoulders and drop jaw tension</p>
+            </div>
+            <button onclick="app.completeWellnessActivity('2-Min Relaxation')" class="px-4 py-2 bg-teal-50 text-teal-700 font-extrabold rounded-xl text-xs hover:bg-teal-100">
+              Start
+            </button>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex justify-between items-center">
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm">Short Mindfulness Pause</h4>
+              <p class="text-xs text-slate-500">Clear background mental noise</p>
+            </div>
+            <button onclick="app.completeWellnessActivity('Mindfulness Pause')" class="px-4 py-2 bg-teal-50 text-teal-700 font-extrabold rounded-xl text-xs hover:bg-teal-100">
+              Start
+            </button>
+          </div>
+
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex justify-between items-center">
+            <div>
+              <h4 class="font-extrabold text-slate-900 text-sm">Light Muscle De-stress</h4>
+              <p class="text-xs text-slate-500">Gentle progressive neck releases</p>
+            </div>
+            <button onclick="app.completeWellnessActivity('Muscle De-stress')" class="px-4 py-2 bg-teal-50 text-teal-700 font-extrabold rounded-xl text-xs hover:bg-teal-100">
+              Start
+            </button>
+          </div>
+        </div>
+
+        <!-- WELLNESS TAB 4: MEDITATION -->
+        <div id="wContentMeditation" class="space-y-3 hidden">
+          <div class="bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 p-6 rounded-3xl text-white space-y-4 shadow-2xl border border-indigo-900/40">
+            <span class="text-[10px] font-black text-indigo-300 uppercase tracking-widest block">🧘 Simple Guided Meditation</span>
+            <h3 class="text-2xl font-black">Calm Mind Session</h3>
+            <p class="text-xs text-indigo-200 font-medium">Select a duration to start an interactive meditation session.</p>
+
+            <div class="grid grid-cols-3 gap-3 pt-2">
+              <button onclick="app.launchMeditationSession(2)" class="py-3.5 bg-white/10 rounded-2xl font-bold text-xs hover:bg-white/20 border border-white/10 text-center active:scale-95 transition">
+                ⏱️ 2 Mins
+              </button>
+              <button onclick="app.launchMeditationSession(5)" class="py-3.5 bg-indigo-500 text-white rounded-2xl font-extrabold text-xs shadow-md text-center hover:bg-indigo-600 active:scale-95 transition">
+                🧘 5 Mins
+              </button>
+              <button onclick="app.launchMeditationSession(10)" class="py-3.5 bg-white/10 rounded-2xl font-bold text-xs hover:bg-white/20 border border-white/10 text-center active:scale-95 transition">
+                🌙 10 Mins
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- WELLNESS TAB 5: WELLNESS STRETCHING (4 CHECKBOXES) -->
+        <div id="wContentStretching" class="space-y-3 hidden">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-black text-slate-900 uppercase">Wellness Stretch Routines</h3>
+            <span class="text-[11px] font-bold text-teal-600"><span id="stretchCompletedCount">0</span> of 4 Done</span>
+          </div>
+
+          <div class="space-y-2.5">
+            <label class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkStretchMorning" onchange="app.toggleStretchItem('morning')" class="w-5 h-5 rounded-md text-teal-600 focus:ring-teal-500 accent-teal-600">
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">🌅 Morning Stretch</h4>
+                  <p class="text-[11px] text-slate-500 font-medium">Awaken spine & hips • 3 Mins</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+5%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkStretchWorkout" onchange="app.toggleStretchItem('workout')" class="w-5 h-5 rounded-md text-teal-600 focus:ring-teal-500 accent-teal-600">
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">🏋️ After Workout Stretch</h4>
+                  <p class="text-[11px] text-slate-500 font-medium">Cool down hamstrings & calves • 4 Mins</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+5%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkStretchSleep" onchange="app.toggleStretchItem('sleep')" class="w-5 h-5 rounded-md text-teal-600 focus:ring-teal-500 accent-teal-600">
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">🌙 Before Sleep Stretch</h4>
+                  <p class="text-[11px] text-slate-500 font-medium">Release lower back & neck • 5 Mins</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+5%</span>
+            </label>
+
+            <label class="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200/80 shadow-2xs hover:border-teal-300 cursor-pointer transition">
+              <div class="flex items-center space-x-3">
+                <input type="checkbox" id="chkStretchSitting" onchange="app.toggleStretchItem('sitting')" class="w-5 h-5 rounded-md text-teal-600 focus:ring-teal-500 accent-teal-600">
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">💻 After Sitting Stretch</h4>
+                  <p class="text-[11px] text-slate-500 font-medium">Open chest & hip flexors • 3 Mins</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-extrabold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">+5%</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- WELLNESS TAB 6: TIPS & SCREEN TIME -->
+        <div id="wContentScreentime" class="space-y-4 hidden">
+          <div class="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-5 rounded-3xl shadow-xl space-y-3">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] font-black uppercase tracking-widest text-emerald-200">🌱 Daily Wellness Tip</span>
+              <button onclick="app.cycleHealthTip()" class="px-2.5 py-1 bg-white/15 hover:bg-white/25 rounded-lg text-[10px] font-extrabold text-white flex items-center space-x-1 border border-white/20 transition">
+                <span>Next Tip 🔄</span>
+              </button>
+            </div>
+            <p id="dailyTipBody" class="text-sm font-semibold leading-relaxed">
+              "Hydrate with a glass of room-temperature water right after waking up to kickstart your metabolism and flush out overnight toxins."
+            </p>
+            <span id="dailyTipCategoryTag" class="inline-block text-[10px] font-extrabold bg-white/20 px-2.5 py-0.5 rounded-full text-emerald-100">Physical Health</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+            <div class="flex justify-between items-center">
+              <h3 class="font-extrabold text-slate-900 text-base">📱 Screen Time Logger</h3>
+              <span id="stStatusBadge" class="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold">🟢 Good</span>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-700">Enter Today's Screen Time</label>
+              <div class="flex items-center space-x-3">
+                <input type="number" id="stHours" value="3" min="0" max="24" class="w-16 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center">
+                <span class="font-bold text-slate-500">h</span>
+                <input type="number" id="stMins" value="45" min="0" max="59" class="w-16 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-center">
+                <span class="font-bold text-slate-500">m</span>
+                <button onclick="app.updateScreenTime()" class="ml-auto px-4 py-2 bg-emerald-600 text-white font-extrabold rounded-xl text-xs hover:bg-emerald-700 transition">
+                  Update
+                </button>
+              </div>
+            </div>
+
+            <div id="stAssessmentBox" class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-1">
+              <span class="text-xs font-extrabold text-emerald-900 block" id="stAssessmentTitle">Assessment: 3h 45m (Target: 4h 00m)</span>
+              <p id="stTipRecommendation" class="text-xs text-emerald-800 font-medium">
+                Try taking a 5–10 minute break every hour and reduce unnecessary screen usage.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
+              <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block uppercase">TODAY</span>
+                <span id="stValToday" class="font-extrabold text-slate-900">3h 45m</span>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block uppercase">YESTERDAY</span>
+                <span id="stValYesterday" class="font-extrabold text-slate-900">4h 25m</span>
+              </div>
+              <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                <span class="text-[9px] text-slate-400 font-bold block uppercase">WEEKLY AVG</span>
+                <span id="stValWeekly" class="font-extrabold text-slate-900">4h 10m</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 4. PROGRESS DASHBOARD SCREEN -->
+      <!-- ========================================== -->
+      <div id="screenProgress" class="p-5 space-y-5 hidden">
+        <div>
+          <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">ANALYTICS & METRICS</span>
+          <h2 class="text-2xl font-black text-slate-900">Progress System</h2>
+        </div>
+
+        <div class="space-y-3">
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold">🏋️</div>
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">Exercise Progress</h4>
+                  <span class="text-[11px] text-slate-500 font-medium">Essentials & Workouts</span>
+                </div>
+              </div>
+              <span id="progExercisePercent" class="text-xl font-black text-emerald-600">80%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div id="progExerciseBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-700" style="width: 80%"></div>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 bg-teal-100 text-teal-700 rounded-xl flex items-center justify-center font-bold">😌</div>
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">Wellness Progress</h4>
+                  <span class="text-[11px] text-slate-500 font-medium">Breathing, Sleep & Stretching</span>
+                </div>
+              </div>
+              <span id="progWellnessPercent" class="text-xl font-black text-teal-600">70%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div id="progWellnessBar" class="bg-gradient-to-r from-teal-500 to-cyan-400 h-full rounded-full transition-all duration-700" style="width: 70%"></div>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-3">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold">📱</div>
+                <div>
+                  <h4 class="font-extrabold text-slate-900 text-sm">Screen-Time Progress</h4>
+                  <span id="stDiffText" class="text-[11px] text-emerald-600 font-bold">↓ 40 min compared with yesterday</span>
+                </div>
+              </div>
+              <span id="progScreenPercent" class="text-xl font-black text-indigo-600">83%</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+              <div id="progScreenBar" class="bg-gradient-to-r from-indigo-500 to-purple-400 h-full rounded-full transition-all duration-700" style="width: 83%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 text-white p-6 rounded-3xl space-y-4 shadow-2xl border border-slate-800">
+          <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest block">OVERALL FIT AI DAILY SCORE</span>
+          
+          <div class="flex items-center justify-between">
+            <div class="space-y-1">
+              <div class="text-4xl font-black tracking-tight" id="dashOverallScoreNum">78%</div>
+              <p class="text-xs text-slate-400">Weighted category average calculation.</p>
+            </div>
+            <div class="w-16 h-16 bg-emerald-500/20 border border-emerald-400/40 rounded-2xl flex items-center justify-center text-emerald-300 font-black text-xl shadow-inner">
+              🎯
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-800">
+            <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+              <span class="text-slate-400 block text-[9px] font-bold">EXERCISE (30%)</span>
+              <span id="calcExScore" class="font-black text-white">80%</span>
+            </div>
+            <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+              <span class="text-slate-400 block text-[9px] font-bold">WELLNESS (30%)</span>
+              <span id="calcWellScore" class="font-black text-white">70%</span>
+            </div>
+            <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+              <span class="text-slate-400 block text-[9px] font-bold">SLEEP (20%)</span>
+              <span id="calcSleepScore" class="font-black text-white">85%</span>
+            </div>
+            <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+              <span class="text-slate-400 block text-[9px] font-bold">SCREEN TIME (20%)</span>
+              <span id="calcScreenScore" class="font-black text-white">75%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- 5. PROFILE SCREEN -->
+      <!-- ========================================== -->
+      <div id="screenProfile" class="p-5 space-y-5 hidden">
+        <div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">SETTINGS & PREFERENCES</span>
+          <h2 class="text-2xl font-black text-slate-900">User Profile</h2>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs flex items-center space-x-4">
+          <div class="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 text-white rounded-2xl flex items-center justify-center text-2xl font-black shadow-md">
+            <span id="profileAvatarBig">S</span>
+          </div>
+          <div>
+            <h3 class="text-lg font-black text-slate-900" id="profName">Sai</h3>
+            <div class="flex items-center space-x-2 text-xs text-slate-500 pt-0.5">
+              <span id="profGoalTag" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">General Fitness</span>
+              <span id="profLevelTag" class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-semibold">Beginner</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-4">
+          <h4 class="font-extrabold text-slate-900 text-xs uppercase tracking-wider">Target Settings</h4>
+          
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Daily Screen Time Target (Hours)</label>
+              <input type="range" id="profStSlider" min="2" max="8" step="0.5" value="4" onchange="app.updateProfileTarget(this.value)" class="w-full accent-emerald-600">
+              <div class="flex justify-between text-xs font-bold text-slate-500 pt-1">
+                <span>2h</span>
+                <span id="profStTargetVal" class="text-emerald-600 font-extrabold">4.0 Hours</span>
+                <span>8h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <button onclick="app.startOnboarding()" class="w-full py-3.5 bg-slate-100 text-slate-800 font-extrabold rounded-2xl text-xs hover:bg-slate-200 transition">
+            ✏️ Edit Profile & Goals
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCISE ACTIVE RUNNER MODAL -->
+    <div id="modalRunner" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-5 text-center shadow-2xl border border-slate-100">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+          <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest">ACTIVE EXERCISE</span>
+          <button onclick="app.closeRunner()" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+        </div>
+
+        <div class="w-20 h-20 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-3xl mx-auto flex items-center justify-center text-4xl shadow-xs">
+          <span id="runnerIcon">🦵</span>
+        </div>
+
+        <div>
+          <h3 id="runnerTitle" class="text-2xl font-black text-slate-900">Squats</h3>
+          <p id="runnerDesc" class="text-xs text-slate-500 font-medium pt-1">Legs and hips focus</p>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+          <div id="runnerCounterDisplay" class="text-4xl font-black text-emerald-600">15 Reps</div>
+        </div>
+
+        <button onclick="app.completeActiveExercise()" class="w-full py-4 bg-emerald-600 text-white font-extrabold rounded-2xl shadow-lg hover:bg-emerald-700 transition active:scale-95 text-base">
+          Mark as Completed ✅
+        </button>
+      </div>
+    </div>
+
+    <!-- MEDITATION SESSION MODAL -->
+    <div id="modalMeditation" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+      <div class="bg-gradient-to-b from-indigo-950 to-slate-950 text-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 space-y-6 text-center shadow-2xl border border-indigo-900/50">
+        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+          <span class="text-[10px] font-black text-indigo-300 uppercase tracking-widest">MINDFUL MEDITATION</span>
+          <button onclick="app.closeMeditationModal()" class="text-white/60 hover:text-white p-1">✕</button>
+        </div>
+
+        <div class="relative w-36 h-36 mx-auto flex items-center justify-center">
+          <div class="w-32 h-32 bg-indigo-500/20 border-2 border-indigo-400/50 rounded-full flex items-center justify-center animate-pulse">
+            <span class="text-5xl">🧘</span>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-2xl font-black text-white" id="meditationModalTitle">5-Minute Meditation</h3>
+          <p class="text-xs text-indigo-200 pt-1">Focus on breathing softly and relaxing your jaw & shoulders.</p>
+        </div>
+
+        <div class="bg-white/10 p-4 rounded-2xl border border-white/10">
+          <div id="meditationTimerDisplay" class="text-4xl font-black text-indigo-300">05:00</div>
+        </div>
+
+        <button onclick="app.completeMeditationSession()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-extrabold rounded-2xl shadow-lg transition active:scale-95 text-base">
+          Complete Meditation ✅
+        </button>
+      </div>
+    </div>
+
+    <!-- VECTOR SVG BOTTOM NAVIGATION BAR -->
+    <nav class="absolute bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-3 py-2.5 flex justify-around items-center z-40">
+      <button onclick="app.switchTab('home')" id="navHome" class="nav-item flex flex-col items-center space-y-1 text-emerald-600 transition">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span class="text-[10px] font-bold tracking-tight">Home</span>
+      </button>
+
+      <button onclick="app.switchTab('exercises')" id="navExercises" class="nav-item flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 6.29 3.43 7.71 4.86 3.43 9.14 2 7.71 .57 9.14 2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22 14.86 20.57 16.29 22 17.71 20.57 16.29 19.14 20.57 14.86z"/></svg>
+        <span class="text-[10px] font-bold tracking-tight">Workouts</span>
+      </button>
+
+      <button onclick="app.switchTab('wellness')" id="navWellness" class="nav-item flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        <span class="text-[10px] font-bold tracking-tight">Wellness</span>
+      </button>
+
+      <button onclick="app.switchTab('progress')" id="navProgress" class="nav-item flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <span class="text-[10px] font-bold tracking-tight">Progress</span>
+      </button>
+
+      <button onclick="app.switchTab('profile')" id="navProfile" class="nav-item flex flex-col items-center space-y-1 text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <span class="text-[10px] font-bold tracking-tight">Profile</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    class FitAiApp {
+      constructor() {
+        this.user = {
+          name: 'Sai',
+          age: 25,
+          height: 175,
+          weight: 70,
+          goal: 'General Fitness',
+          level: 'Beginner',
+          time: '20 min',
+          equipment: 'None',
+          screenTarget: 4.0
+        };
+
+        this.state = {
+          isLoggedIn: true,
+          currentTab: 'home',
+          exerciseSubTab: 'workouts',
+          wellnessSubTab: 'sleep',
+          
+          chkWorkout: false,
+          chkWalking: false,
+          chkBreathing: false,
+          chkStretching: false,
+          chkTip: false,
+
+          chkStretchMorning: false,
+          chkStretchWorkout: false,
+          chkStretchSleep: false,
+          chkStretchSitting: false,
+
+          screenTimeHours: 3,
+          screenTimeMins: 45,
+          sleepBedtime: "23:00",
+          sleepWaketime: "06:20",
+          sleepDurationHours: 7.33,
+          breathingTimerId: null,
+          meditationTimerId: null,
+          currentTipIndex: 0,
+          sleepLogged: false
+        };
+
+        this.progressStorageKey = 'fitai_progress_v1';
+        this.sleepHistory = [];
+        this.progressWindowStartedAt = Date.now();
+        this.loadProgressState();
+
+        this.healthTips = [
+          { text: "Hydrate with a glass of room-temperature water right after waking up to kickstart your metabolism and flush out overnight toxins.", type: "Physical Health" },
+          { text: "Practice 5 minutes of mindful diaphragmatic breathing before your workday to reduce cortisol and improve focus.", type: "Mental Health" },
+          { text: "Stand up and stretch your hips and neck every 45 minutes of computer work to protect spine alignment.", type: "Physical Health" },
+          { text: "Engage in a 10-minute digital screen detox before sleeping to boost natural melatonin production.", type: "Mental & Physical" },
+          { text: "Incorporate 10-15 minutes of brisk walking after lunch to stabilize blood glucose and prevent afternoon energy dips.", type: "Physical Health" }
+        ];
+
+        this.dailyEssentials = [
+          { id: 'walk', name: '🚶 Walking', desc: 'Daily walking / brisk walking', target: '15 Mins', icon: '🚶' },
+          { id: 'squats', name: '🦵 Squats', desc: 'Legs and hips focus', target: '15 Reps', icon: '🦵' },
+          { id: 'pushups', name: '💪 Push-ups', desc: 'Chest, shoulders and arms', target: '10 Reps', icon: '💪' },
+          { id: 'plank', name: '🧱 Plank', desc: 'Core stability', target: '45 Secs', icon: '🧱' },
+          { id: 'bridges', name: '🍑 Glute Bridges', desc: 'Glutes and hips activation', target: '12 Reps', icon: '🍑' },
+          { id: 'lunges', name: '🦵 Lunges', desc: 'Legs and balance focus', target: '10 Each Leg', icon: '🦵' },
+          { id: 'calves', name: '🧍 Calf Raises', desc: 'Calves strength', target: '20 Reps', icon: '🧍' },
+          { id: 'circles', name: '🙆 Shoulder/Arm Circles', desc: 'Gentle upper-body mobility', target: '30 Secs', icon: '🙆' },
+          { id: 'stretching', name: '🧘 Full-body Stretching', desc: 'Flexibility and recovery', target: '5 Mins', icon: '🧘' }
+        ];
+
+        this.workoutPresets = {
+          'General Fitness': [
+            { name: 'Jumping Jacks', desc: 'Full body warmup', count: '45 Secs', icon: '🏃' },
+            { name: 'Bodyweight Squats', desc: 'Quads & glutes', count: '15 Reps', icon: '🦵' },
+            { name: 'Standard Push-ups', desc: 'Upper body chest', count: '10 Reps', icon: '💪' },
+            { name: 'Mountain Climbers', desc: 'Core & cardio boost', count: '30 Secs', icon: '⛰️' },
+            { name: 'Cool-down Stretch', desc: 'Full body recovery', count: '3 Mins', icon: '🧘' }
+          ],
+          'Weight Loss': [
+            { name: 'High Knees', desc: 'High intensity cardio', count: '45 Secs', icon: '⚡' },
+            { name: 'Burpees', desc: 'Total body burner', count: '10 Reps', icon: '🔥' },
+            { name: 'Jump Squats', desc: 'Explosive legs', count: '12 Reps', icon: '🦵' },
+            { name: 'Plank Jacks', desc: 'Core cardio combo', count: '30 Secs', icon: '🧱' }
+          ],
+          'Muscle Gain': [
+            { name: 'Tempo Squats', desc: 'Hypertrophy leg focus', count: '15 Reps', icon: '🦵' },
+            { name: 'Decline Push-ups', desc: 'Upper chest hypertrophy', count: '12 Reps', icon: '💪' },
+            { name: 'Single-leg Glute Bridge', desc: 'Posterior chain builder', count: '10 Each', icon: '🍑' }
+          ],
+          'Strength': [
+            { name: 'Pause Squats', desc: 'Pure leg strength', count: '12 Reps', icon: '🦵' },
+            { name: 'Diamond Push-ups', desc: 'Triceps & chest strength', count: '8 Reps', icon: '💪' }
+          ],
+          'Beginner Fitness': [
+            { name: 'Gentle Arm Circles', desc: 'Upper mobility', count: '30 Secs', icon: '🙆' },
+            { name: 'Wall Push-ups', desc: 'Easy chest entry', count: '10 Reps', icon: '💪' }
+          ]
+        };
+
+        this.init();
+        this.resetCheckTimer = setInterval(() => this.checkDailyReset(), 60000);
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden) this.checkDailyReset();
+        });
+      }
+
+      getLocalDateKey(date = new Date()) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      loadProgressState() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(this.progressStorageKey) || '{}');
+          const now = Date.now();
+          this.progressWindowStartedAt = Number(saved.dailyStartedAt) || now;
+          this.sleepHistory = Array.isArray(saved.sleepHistory) ? saved.sleepHistory
+            .filter(entry => entry && /^\d{4}-\d{2}-\d{2}$/.test(entry.date) && Number.isFinite(Number(entry.hours)) && Number(entry.hours) >= 0 && Number(entry.hours) <= 24)
+            .slice(-30) : [];
+          if (now - this.progressWindowStartedAt < 24 * 60 * 60 * 1000 && saved.dailyState) {
+            this.state = { ...this.state, ...saved.dailyState, breathingTimerId: null, meditationTimerId: null };
+          } else {
+            this.progressWindowStartedAt = now;
+            this.resetDailyProgress(false, false);
+          }
+        } catch (error) {
+          this.progressWindowStartedAt = Date.now();
+          this.sleepHistory = [];
+        }
+      }
+
+      saveProgressState() {
+        try {
+          const dailyState = {
+            chkWorkout: this.state.chkWorkout,
+            chkWalking: this.state.chkWalking,
+            chkBreathing: this.state.chkBreathing,
+            chkStretching: this.state.chkStretching,
+            chkTip: this.state.chkTip,
+            chkStretchMorning: this.state.chkStretchMorning,
+            chkStretchWorkout: this.state.chkStretchWorkout,
+            chkStretchSleep: this.state.chkStretchSleep,
+            chkStretchSitting: this.state.chkStretchSitting,
+            screenTimeHours: this.state.screenTimeHours,
+            screenTimeMins: this.state.screenTimeMins,
+            sleepBedtime: this.state.sleepBedtime,
+            sleepWaketime: this.state.sleepWaketime,
+            sleepDurationHours: this.state.sleepDurationHours,
+            sleepLogged: this.state.sleepLogged
+          };
+          localStorage.setItem(this.progressStorageKey, JSON.stringify({
+            dailyStartedAt: this.progressWindowStartedAt,
+            dailyState,
+            sleepHistory: this.sleepHistory.slice(-30)
+          }));
+        } catch (error) {
+          console.warn('Could not save FitAI progress', error);
+        }
+      }
+
+      applyDailyStateToInputs() {
+        const checklist = {
+          chkWorkout: this.state.chkWorkout,
+          chkWalking: this.state.chkWalking,
+          chkBreathing: this.state.chkBreathing,
+          chkStretching: this.state.chkStretching,
+          chkTip: this.state.chkTip,
+          chkStretchMorning: this.state.chkStretchMorning,
+          chkStretchWorkout: this.state.chkStretchWorkout,
+          chkStretchSleep: this.state.chkStretchSleep,
+          chkStretchSitting: this.state.chkStretchSitting
+        };
+        Object.entries(checklist).forEach(([id, checked]) => {
+          const input = document.getElementById(id);
+          if (input) input.checked = Boolean(checked);
+        });
+        const bedtime = document.getElementById('sleepBedtime');
+        const waketime = document.getElementById('sleepWaketime');
+        if (bedtime) bedtime.value = this.state.sleepBedtime || '';
+        if (waketime) waketime.value = this.state.sleepWaketime || '';
+        const hours = Math.floor(this.state.screenTimeHours || 0);
+        const minutes = Math.round(((this.state.screenTimeHours || 0) - hours) * 60);
+        const screenHours = document.getElementById('stHours');
+        const screenMins = document.getElementById('stMins');
+        if (screenHours) screenHours.value = String(hours);
+        if (screenMins) screenMins.value = String(minutes);
+        const duration = document.getElementById('sleepDurationDisplay');
+        if (duration) {
+          const totalMinutes = Math.round((this.state.sleepDurationHours || 0) * 60);
+          duration.innerText = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+        }
+      }
+
+      resetDailyProgress(showNotice = true, recalculate = true) {
+        this.state.chkWorkout = false;
+        this.state.chkWalking = false;
+        this.state.chkBreathing = false;
+        this.state.chkStretching = false;
+        this.state.chkTip = false;
+        this.state.chkStretchMorning = false;
+        this.state.chkStretchWorkout = false;
+        this.state.chkStretchSleep = false;
+        this.state.chkStretchSitting = false;
+        this.state.screenTimeHours = 0;
+        this.state.screenTimeMins = 0;
+        this.state.sleepDurationHours = 0;
+        this.state.sleepLogged = false;
+        this.progressWindowStartedAt = Date.now();
+        this.applyDailyStateToInputs();
+        if (recalculate && document.getElementById('dashOverallScoreNum')) this.recalculateAllScores();
+        if (showNotice && document.getElementById('toastNotification')) this.showToast('A new 24-hour progress period has started.');
+        this.saveProgressState();
+      }
+
+      checkDailyReset() {
+        const elapsed = Date.now() - this.progressWindowStartedAt;
+        const period = 24 * 60 * 60 * 1000;
+        if (elapsed < period) return;
+        const wholePeriods = Math.floor(elapsed / period);
+        this.progressWindowStartedAt += wholePeriods * period;
+        this.resetDailyProgress(true);
+      }
+
+      recordSleep() {
+        const date = this.getLocalDateKey();
+        this.sleepHistory = this.sleepHistory.filter(entry => entry.date !== date);
+        this.sleepHistory.push({ date, hours: Number(this.state.sleepDurationHours.toFixed(2)) });
+        this.sleepHistory.sort((a, b) => a.date.localeCompare(b.date));
+        this.renderSleepTrend();
+      }
+
+      renderSleepTrend() {
+        const chart = document.getElementById('weeklySleepTrend');
+        const summary = document.getElementById('weeklySleepSummary');
+        if (!chart || !summary) return;
+        const today = new Date();
+        const byDate = new Map(this.sleepHistory.map(entry => [entry.date, Number(entry.hours)]));
+        const days = [];
+        for (let offset = 6; offset >= 0; offset--) {
+          const date = new Date(today);
+          date.setDate(today.getDate() - offset);
+          const key = this.getLocalDateKey(date);
+          const hours = byDate.get(key);
+          days.push({ key, label: offset === 0 ? 'Today' : date.toLocaleDateString(undefined, { weekday: 'short' }), hours });
+        }
+        chart.innerHTML = days.map(day => {
+          const logged = Number.isFinite(day.hours);
+          const height = logged ? Math.max(6, Math.min(100, (day.hours / 10) * 100)) : 5;
+          const color = !logged ? 'bg-slate-200' : (day.key === this.getLocalDateKey() ? 'bg-teal-500' : 'bg-emerald-300');
+          const title = logged ? `${day.label}: ${day.hours.toFixed(1)} hours` : `${day.label}: no sleep entry`;
+          return `<div class="flex h-full flex-col items-center justify-end space-y-1" style="width:12%">
+            <div class="w-7 ${color} rounded-t-lg transition-all" style="height:${height}%" title="${title}" aria-label="${title}"></div>
+            <span class="text-[10px] font-bold ${day.key === this.getLocalDateKey() ? 'text-teal-600' : 'text-slate-400'}">${day.label}</span>
+          </div>`;
+        }).join('');
+        const loggedDays = days.filter(day => Number.isFinite(day.hours));
+        if (!loggedDays.length) {
+          summary.innerText = 'Log sleep to start your weekly trend.';
+        } else {
+          const average = loggedDays.reduce((total, day) => total + day.hours, 0) / loggedDays.length;
+          summary.innerText = `${loggedDays.length} ${loggedDays.length === 1 ? 'day' : 'days'} logged · ${average.toFixed(1)}h average`;
+        }
+      }
+
+      init() {
+        this.renderDailyEssentials();
+        this.renderGeneratedWorkouts();
+        this.cycleHealthTip(0);
+        this.applyDailyStateToInputs();
+        this.renderSleepTrend();
+        this.recalculateAllScores();
+        
+        const viewSplash = document.getElementById('viewSplash');
+        if (this.state.isLoggedIn && viewSplash) {
+          viewSplash.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => viewSplash.classList.add('hidden'), 500);
+        }
+      }
+
+      showToast(msg) {
+        const toast = document.getElementById('toastNotification');
+        const txt = document.getElementById('toastText');
+        if (toast && txt) {
+          txt.innerText = msg;
+          toast.classList.remove('opacity-0', 'pointer-events-none');
+          toast.classList.add('opacity-100');
+          setTimeout(() => {
+            toast.classList.add('opacity-0', 'pointer-events-none');
+            toast.classList.remove('opacity-100');
+          }, 2000);
+        }
+      }
+
+
+
+      quickLogin() {
+        this.state.isLoggedIn = true;
+        const viewSplash = document.getElementById('viewSplash');
+        viewSplash.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => viewSplash.classList.add('hidden'), 500);
+      }
+
+      startOnboarding() {
+        document.getElementById('modalOnboarding').classList.remove('hidden');
+      }
+
+      closeOnboarding() {
+        document.getElementById('modalOnboarding').classList.add('hidden');
+      }
+
+      submitOnboarding(e) {
+        e.preventDefault();
+        this.user.name = document.getElementById('obName').value || 'Sai';
+        this.user.goal = document.getElementById('obGoal').value;
+        this.user.level = document.getElementById('obLevel').value;
+        this.user.time = document.getElementById('obTime').value;
+        this.user.equipment = document.getElementById('obEquipment').value;
+        this.user.screenTarget = parseFloat(document.getElementById('obScreenTarget').value);
+
+        document.getElementById('userNameHeader').innerText = this.user.name;
+        document.getElementById('userAvatarInitials').innerText = this.user.name.charAt(0).toUpperCase();
+        document.getElementById('profileAvatarBig').innerText = this.user.name.charAt(0).toUpperCase();
+        document.getElementById('profName').innerText = this.user.name;
+        document.getElementById('profGoalTag').innerText = this.user.goal;
+        document.getElementById('profLevelTag').innerText = this.user.level;
+
+        document.getElementById('paramLevel').innerText = this.user.level;
+        document.getElementById('paramTime').innerText = this.user.time;
+        document.getElementById('paramEquip').innerText = this.user.equipment;
+
+        this.renderGeneratedWorkouts();
+        this.closeOnboarding();
+        this.quickLogin();
+        this.recalculateAllScores();
+      }
+
+      switchTab(tabName) {
+        this.state.currentTab = tabName;
+        ['Home', 'Exercises', 'Wellness', 'Progress', 'Profile'].forEach(t => {
+          const screen = document.getElementById(`screen${t}`);
+          const navBtn = document.getElementById(`nav${t}`);
+          if (t.toLowerCase() === tabName) {
+            screen.classList.remove('hidden');
+            navBtn.classList.add('text-emerald-600');
+            navBtn.classList.remove('text-slate-400');
+          } else {
+            screen.classList.add('hidden');
+            navBtn.classList.remove('text-emerald-600');
+            navBtn.classList.add('text-slate-400');
+          }
+        });
+      }
+
+      setExerciseSubTab(subTab) {
+        this.state.exerciseSubTab = subTab;
+        const btnWorkouts = document.getElementById('tabBtnWorkouts');
+        const btnEssentials = document.getElementById('tabBtnEssentials');
+        const subWorkouts = document.getElementById('subTabWorkouts');
+        const subEssentials = document.getElementById('subTabEssentials');
+
+        if (subTab === 'workouts') {
+          btnWorkouts.className = "flex-1 py-2.5 rounded-xl font-extrabold text-xs transition shadow-xs bg-white text-slate-900";
+          btnEssentials.className = "flex-1 py-2.5 rounded-xl font-extrabold text-xs transition text-slate-600";
+          subWorkouts.classList.remove('hidden');
+          subEssentials.classList.add('hidden');
+        } else {
+          btnEssentials.className = "flex-1 py-2.5 rounded-xl font-extrabold text-xs transition shadow-xs bg-white text-slate-900";
+          btnWorkouts.className = "flex-1 py-2.5 rounded-xl font-extrabold text-xs transition text-slate-600";
+          subEssentials.classList.remove('hidden');
+          subWorkouts.classList.add('hidden');
+        }
+      }
+
+      setWellnessTab(wTab) {
+        this.state.wellnessSubTab = wTab;
+        const tabs = ['sleep', 'breathing', 'stress', 'meditation', 'stretching', 'screentime'];
+        tabs.forEach(t => {
+          const cap = t.charAt(0).toUpperCase() + t.slice(1);
+          const btn = document.getElementById(`wTab${cap}`);
+          const content = document.getElementById(`wContent${cap}`);
+          if (t === wTab) {
+            btn.className = "w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-teal-600 text-white shadow-xs";
+            content.classList.remove('hidden');
+          } else {
+            btn.className = "w-tab px-4 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap bg-white text-slate-600 border border-slate-200";
+            content.classList.add('hidden');
+          }
+        });
+      }
+
+      selectGoal(goalName) {
+        this.user.goal = goalName;
+        document.querySelectorAll('.goal-chip').forEach(btn => {
+          if (btn.innerText.includes(goalName)) {
+            btn.className = "goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-emerald-600 text-white border-emerald-600";
+          } else {
+            btn.className = "goal-chip px-3 py-2 rounded-xl text-xs font-bold border transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100";
+          }
+        });
+        this.renderGeneratedWorkouts();
+      }
+
+      renderGeneratedWorkouts() {
+        const list = document.getElementById('generatedExercisesList');
+        const items = this.workoutPresets[this.user.goal] || this.workoutPresets['General Fitness'];
+        document.getElementById('workoutItemCount').innerText = `${items.length} Exercises`;
+
+        list.innerHTML = items.map((ex) => `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex justify-between items-center hover:border-emerald-300 transition">
+            <div class="flex items-center space-x-3">
+              <span class="w-10 h-10 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center font-bold text-xl">${ex.icon}</span>
+              <div>
+                <h4 class="font-extrabold text-slate-900 text-sm">${ex.name}</h4>
+                <p class="text-xs text-slate-500 font-medium">${ex.desc} • <span class="font-bold text-emerald-600">${ex.count}</span></p>
+              </div>
+            </div>
+            <button onclick="app.launchRunner('${ex.name}', '${ex.desc}', '${ex.count}', '${ex.icon}')" class="px-3.5 py-2 bg-emerald-50 text-emerald-700 font-extrabold rounded-xl text-xs hover:bg-emerald-100 transition">
+              Start
+            </button>
+          </div>
+        `).join('');
+      }
+
+      renderDailyEssentials() {
+        const list = document.getElementById('essentialsList');
+        list.innerHTML = this.dailyEssentials.map(ex => `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex justify-between items-center hover:border-emerald-300 transition">
+            <div class="flex items-center space-x-3">
+              <span class="w-10 h-10 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center font-bold text-xl">${ex.icon}</span>
+              <div>
+                <h4 class="font-extrabold text-slate-900 text-sm">${ex.name}</h4>
+                <p class="text-xs text-slate-500 font-medium">${ex.desc} • <span class="font-bold text-slate-800">${ex.target}</span></p>
+              </div>
+            </div>
+            <button onclick="app.launchRunner('${ex.name}', '${ex.desc}', '${ex.target}', '${ex.icon}')" class="px-3.5 py-2 bg-slate-100 text-slate-800 font-extrabold rounded-xl text-xs hover:bg-slate-200 transition">
+              Start
+            </button>
+          </div>
+        `).join('');
+      }
+
+      launchRunner(name, desc, count, icon) {
+        document.getElementById('runnerTitle').innerText = name;
+        document.getElementById('runnerDesc').innerText = desc;
+        document.getElementById('runnerCounterDisplay').innerText = count;
+        document.getElementById('runnerIcon').innerText = icon;
+        document.getElementById('modalRunner').classList.remove('hidden');
+      }
+
+      closeRunner() {
+        document.getElementById('modalRunner').classList.add('hidden');
+      }
+
+      completeActiveExercise() {
+        this.closeRunner();
+        this.state.chkWorkout = true;
+        document.getElementById('chkWorkout').checked = true;
+        this.showToast("✅ Exercise Completed!");
+        this.recalculateAllScores();
+      }
+
+      launchMeditationSession(minutes) {
+        document.getElementById('meditationModalTitle').innerText = `${minutes}-Minute Guided Meditation`;
+        document.getElementById('meditationTimerDisplay').innerText = `0${minutes}:00`;
+        document.getElementById('modalMeditation').classList.remove('hidden');
+
+        let durationSeconds = minutes * 60;
+        if (this.state.meditationTimerId) clearInterval(this.state.meditationTimerId);
+
+        this.state.meditationTimerId = setInterval(() => {
+          durationSeconds--;
+          const m = String(Math.floor(durationSeconds / 60)).padStart(2, '0');
+          const s = String(durationSeconds % 60).padStart(2, '0');
+          document.getElementById('meditationTimerDisplay').innerText = `${m}:${s}`;
+
+          if (durationSeconds <= 0) {
+            clearInterval(this.state.meditationTimerId);
+            this.completeMeditationSession();
+          }
+        }, 1000);
+      }
+
+      closeMeditationModal() {
+        if (this.state.meditationTimerId) clearInterval(this.state.meditationTimerId);
+        document.getElementById('modalMeditation').classList.add('hidden');
+      }
+
+      completeMeditationSession() {
+        this.closeMeditationModal();
+        this.state.chkBreathing = true;
+        document.getElementById('chkBreathing').checked = true;
+        this.showToast("✅ Meditation Completed!");
+        this.recalculateAllScores();
+      }
+
+      toggleStretchItem(type) {
+        if (type === 'morning') this.state.chkStretchMorning = document.getElementById('chkStretchMorning').checked;
+        if (type === 'workout') this.state.chkStretchWorkout = document.getElementById('chkStretchWorkout').checked;
+        if (type === 'sleep') this.state.chkStretchSleep = document.getElementById('chkStretchSleep').checked;
+        if (type === 'sitting') this.state.chkStretchSitting = document.getElementById('chkStretchSitting').checked;
+
+        const count = [this.state.chkStretchMorning, this.state.chkStretchWorkout, this.state.chkStretchSleep, this.state.chkStretchSitting].filter(Boolean).length;
+        document.getElementById('stretchCompletedCount').innerText = count;
+
+        if (count > 0) {
+          this.state.chkStretching = true;
+          document.getElementById('chkStretching').checked = true;
+        }
+
+        this.recalculateAllScores();
+      }
+
+      cycleHealthTip(targetIdx) {
+        if (targetIdx !== undefined) {
+          this.state.currentTipIndex = targetIdx;
+        } else {
+          this.state.currentTipIndex = (this.state.currentTipIndex + 1) % this.healthTips.length;
+        }
+        const tip = this.healthTips[this.state.currentTipIndex];
+        document.getElementById('dailyTipBody').innerText = `"${tip.text}"`;
+        document.getElementById('dailyTipCategoryTag').innerText = tip.type;
+      }
+
+      toggleChecklist(key) {
+        if (key === 'workout') this.state.chkWorkout = document.getElementById('chkWorkout').checked;
+        if (key === 'walking') this.state.chkWalking = document.getElementById('chkWalking').checked;
+        if (key === 'breathing') this.state.chkBreathing = document.getElementById('chkBreathing').checked;
+        if (key === 'stretching') this.state.chkStretching = document.getElementById('chkStretching').checked;
+        if (key === 'tip') this.state.chkTip = document.getElementById('chkTip').checked;
+
+        this.recalculateAllScores();
+      }
+
+      recalculateSleep() {
+        const bed = document.getElementById('sleepBedtime').value;
+        const wake = document.getElementById('sleepWaketime').value;
+        if (bed && wake) {
+          const [bH, bM] = bed.split(':').map(Number);
+          const [wH, wM] = wake.split(':').map(Number);
+          let durationMins = (wH * 60 + wM) - (bH * 60 + bM);
+          if (durationMins < 0) durationMins += 24 * 60;
+          this.state.sleepDurationHours = durationMins / 60;
+          this.state.sleepBedtime = bed;
+          this.state.sleepWaketime = wake;
+          this.state.sleepLogged = true;
+          document.getElementById('sleepDurationDisplay').innerText = Math.floor(durationMins / 60) + 'h ' + (durationMins % 60) + 'm';
+          this.recordSleep();
+        }
+        this.recalculateAllScores();
+      }
+
+      startBreathingTimer(seconds) {
+        const circle = document.getElementById('breathingCircle');
+        const phase = document.getElementById('breathPhaseText');
+        const timerText = document.getElementById('breathTimerSeconds');
+        
+        circle.classList.add('animate-breath');
+        let remaining = seconds;
+        let phaseStep = 0;
+
+        if (this.state.breathingTimerId) clearInterval(this.state.breathingTimerId);
+
+        this.state.breathingTimerId = setInterval(() => {
+          remaining--;
+          timerText.innerText = `${remaining}s`;
+
+          phaseStep = (phaseStep + 1) % 12;
+          if (phaseStep < 4) phase.innerText = "Inhale";
+          else if (phaseStep < 8) phase.innerText = "Hold";
+          else phase.innerText = "Exhale";
+
+          if (remaining <= 0) {
+            clearInterval(this.state.breathingTimerId);
+            circle.classList.remove('animate-breath');
+            phase.innerText = "Complete ✅";
+            this.completeWellnessActivity('Breathing Session');
+          }
+        }, 1000);
+      }
+
+      completeWellnessActivity(name) {
+        this.state.chkBreathing = true;
+        this.state.chkStretching = true;
+        document.getElementById('chkBreathing').checked = true;
+        document.getElementById('chkStretching').checked = true;
+        this.showToast(`✅ ${name} Completed!`);
+        this.recalculateAllScores();
+      }
+
+      updateScreenTime() {
+        const h = parseInt(document.getElementById('stHours').value) || 0;
+        const m = parseInt(document.getElementById('stMins').value) || 0;
+        this.state.screenTimeHours = h + (m / 60);
+
+        const target = this.user.screenTarget;
+        const badge = document.getElementById('stStatusBadge');
+        const box = document.getElementById('stAssessmentBox');
+        const title = document.getElementById('stAssessmentTitle');
+        const tip = document.getElementById('stTipRecommendation');
+
+        document.getElementById('stValToday').innerText = `${h}h ${m}m`;
+        title.innerText = `Assessment: ${h}h ${m}m (Target: ${target}h 00m)`;
+
+        if (this.state.screenTimeHours <= target) {
+          badge.className = "px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-bold";
+          badge.innerText = "🟢 Good";
+          box.className = "bg-emerald-50 border border-emerald-200 p-4 rounded-2xl space-y-1";
+          tip.innerText = "Great job staying within your daily screen limit!";
+        } else {
+          badge.className = "px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-bold";
+          badge.innerText = "🟠 High screen time";
+          box.className = "bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-1";
+          tip.innerText = "Try taking a 5–10 minute break every hour and reduce unnecessary screen usage.";
+        }
+
+        this.state.chkTip = true;
+        document.getElementById('chkTip').checked = true;
+        this.showToast("📱 Screen Time Updated!");
+        this.recalculateAllScores();
+      }
+
+      updateProfileTarget(val) {
+        this.user.screenTarget = parseFloat(val);
+        document.getElementById('profStTargetVal').innerText = `${val} Hours`;
+        this.updateScreenTime();
+      }
+
+      recalculateAllScores() {
+        this.checkDailyReset();
+        let exItems = 0;
+        if (this.state.chkWorkout) exItems += 50;
+        if (this.state.chkWalking) exItems += 30;
+        const exerciseScore = Math.min(100, Math.max(40, exItems + 30));
+
+        let wellItems = 0;
+        if (this.state.chkBreathing) wellItems += 25;
+        const stretchTicksCount = [this.state.chkStretchMorning, this.state.chkStretchWorkout, this.state.chkStretchSleep, this.state.chkStretchSitting].filter(Boolean).length;
+        wellItems += stretchTicksCount * 12.5;
+        const wellnessScore = Math.min(100, Math.max(35, Math.round(wellItems + 25)));
+
+        let sleepScore = 0;
+        if (this.state.sleepLogged) {
+          sleepScore = 60;
+          if (this.state.sleepDurationHours >= 7 && this.state.sleepDurationHours <= 9) sleepScore = 95;
+          else if (this.state.sleepDurationHours >= 6) sleepScore = 75;
+        }
+
+        const target = this.user.screenTarget;
+        const actual = this.state.screenTimeHours;
+        let screenScore = actual > target ? Math.max(30, Math.round(100 - ((actual - target) * 20))) : Math.round((actual / target) * 100);
+
+        const overallScore = Math.round(
+          (exerciseScore * 0.30) + (wellnessScore * 0.30) + (sleepScore * 0.20) + (screenScore * 0.20)
+        );
+
+        const completedCount = [
+          this.state.chkWorkout, this.state.chkWalking, this.state.chkBreathing, this.state.chkStretching, this.state.chkTip
+        ].filter(Boolean).length;
+
+        document.getElementById('planCompletedCount').innerText = completedCount;
+        document.getElementById('homeOverallScore').innerText = overallScore;
+        document.getElementById('dashOverallScoreNum').innerText = `${overallScore}%`;
+
+        const circle = document.getElementById('homeScoreCircle');
+        if (circle) {
+          circle.style.strokeDashoffset = 238.76 - (overallScore / 100) * 238.76;
+        }
+
+        document.getElementById('chipExercise').innerText = `${exerciseScore}%`;
+        document.getElementById('chipWellness').innerText = `${wellnessScore}%`;
+        document.getElementById('chipSleep').innerText = `${sleepScore}%`;
+        document.getElementById('chipScreen').innerText = `${screenScore}%`;
+
+        document.getElementById('progExercisePercent').innerText = `${exerciseScore}%`;
+        document.getElementById('progExerciseBar').style.width = `${exerciseScore}%`;
+
+        document.getElementById('progWellnessPercent').innerText = `${wellnessScore}%`;
+        document.getElementById('progWellnessBar').style.width = `${wellnessScore}%`;
+
+        document.getElementById('progScreenPercent').innerText = `${screenScore}%`;
+        document.getElementById('progScreenBar').style.width = `${screenScore}%`;
+
+        document.getElementById('calcExScore').innerText = `${exerciseScore}%`;
+        document.getElementById('calcWellScore').innerText = `${wellnessScore}%`;
+        document.getElementById('calcSleepScore').innerText = `${sleepScore}%`;
+        document.getElementById('calcScreenScore').innerText = `${screenScore}%`;
+
+        const recText = document.getElementById('aiRecommendationText');
+        if (wellnessScore < 70) {
+          recText.innerText = "Wellness score is 60%. Complete a 2-min guided breathing or desk stretch to boost recovery.";
+        } else if (exerciseScore < 80) {
+          recText.innerText = "Good progress! Finish your 20-min General Fitness workout to hit top exercise score.";
+        } else {
+          recText.innerText = "Optimal balance achieved today! Keep up your steady routine and target screen time limit.";
+        }
+        this.renderSleepTrend();
+        this.saveProgressState();
+      }
+    }
+
+    const app = new FitAiApp();
+  </script>
+</body>
+</html>
